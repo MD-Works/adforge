@@ -1,0 +1,1177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>AdForge Pro</title>
+<style>
+:root{
+  --bg:#0b0c10;--surf:#13151c;--surf2:#1c1f2b;--border:#252836;
+  --accent:#4f8ef7;--accent2:#7c6af7;--green:#3ecf8e;--red:#f76f6f;
+  --yellow:#f5c842;--text:#e4e6f0;--muted:#6b6e84;--radius:13px;
+  --font:'Segoe UI',system-ui,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:100dvh;padding-bottom:60px}
+
+/* NAV */
+nav{display:flex;background:var(--surf);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100}
+nav button{flex:1;padding:13px 2px 11px;background:none;border:none;color:var(--muted);font-family:var(--font);font-size:0.7rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase;cursor:pointer;border-bottom:2px solid transparent;transition:color .2s,border-color .2s}
+nav button.active{color:var(--accent);border-bottom-color:var(--accent)}
+
+/* PAGES */
+.page{display:none;padding:18px 15px;max-width:520px;margin:0 auto}
+.page.active{display:block}
+
+/* LABELS */
+.label{font-size:.71rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;display:block}
+
+/* CARDS */
+.card{background:var(--surf);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:13px}
+.card-title{font-size:.82rem;font-weight:700;margin-bottom:12px;color:var(--text)}
+
+/* INPUTS */
+input,select,textarea{
+  width:100%;background:var(--bg);border:1px solid var(--border);border-radius:9px;
+  color:var(--text);font-family:var(--font);font-size:.93rem;padding:10px 12px;
+  outline:none;transition:border-color .2s;-webkit-appearance:none;appearance:none
+}
+input:focus,select:focus,textarea:focus{border-color:var(--accent)}
+input::placeholder,textarea::placeholder{color:var(--muted)}
+textarea{resize:vertical;min-height:66px}
+select{
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='7'%3E%3Cpath d='M1 1l4.5 4.5L10 1' stroke='%236b6e84' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 11px center;padding-right:30px
+}
+
+/* BUTTONS */
+.btn{display:block;width:100%;padding:12px;border-radius:9px;border:none;font-family:var(--font);font-size:.93rem;font-weight:700;cursor:pointer;transition:opacity .15s,transform .1s;text-align:center;text-decoration:none;line-height:1.2}
+.btn:active{opacity:.8;transform:scale(.98)}
+.btn:disabled{opacity:.38;cursor:not-allowed;transform:none}
+.btn-primary{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff}
+.btn-outline{background:transparent;border:1px solid var(--border);color:var(--text)}
+.btn-green{background:var(--green);color:#0b0c10}
+.btn-yellow{background:var(--yellow);color:#0b0c10}
+.btn-sm{padding:7px 13px;font-size:.8rem;border-radius:7px;width:auto;display:inline-block}
+.btn-danger{background:transparent;border:1px solid var(--red)!important;color:var(--red)}
+
+/* ROW */
+.row{display:flex;gap:9px}
+.row>*{flex:1;min-width:0}
+
+/* PRODUCT CHIPS */
+#product-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.p-chip{background:var(--surf2);border:1px solid var(--border);border-radius:20px;padding:6px 12px;font-size:.8rem;cursor:pointer;transition:border-color .15s,color .15s;user-select:none}
+.p-chip.selected{border-color:var(--accent);color:var(--accent)}
+
+/* PROVIDER PILLS */
+.provider-row{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:10px}
+.prov-pill{padding:6px 13px;border-radius:20px;font-size:.78rem;font-weight:700;cursor:pointer;border:1.5px solid var(--border);background:var(--surf2);color:var(--muted);transition:all .15s;user-select:none}
+.prov-pill.active{border-color:var(--accent);color:var(--accent);background:rgba(79,142,247,.08)}
+.prov-pill .dot{width:7px;height:7px;border-radius:50%;display:inline-block;margin-right:5px;background:var(--muted)}
+.prov-pill.active .dot{background:var(--green)}
+.prov-pill.no-key .dot{background:var(--yellow)}
+
+/* KEY INPUT AREA */
+.key-area{background:var(--bg);border:1px solid var(--border);border-radius:9px;padding:12px;margin-top:8px;font-size:.83rem}
+.key-area a{color:var(--accent);text-decoration:none}
+.key-area a:hover{text-decoration:underline}
+.key-row{display:flex;gap:7px;margin-top:8px}
+.key-row input{flex:1;font-size:.82rem;padding:8px 10px}
+.key-status{font-size:.73rem;margin-top:5px}
+.key-status.ok{color:var(--green)}
+.key-status.err{color:var(--red)}
+.key-status.warn{color:var(--yellow)}
+
+/* AD PREVIEW */
+#ad-preview{margin-top:14px}
+.skeleton{width:100%;aspect-ratio:1;border-radius:var(--radius);background:linear-gradient(90deg,var(--surf) 25%,var(--border) 50%,var(--surf) 75%);background-size:200% 100%;animation:shimmer 1.4s infinite}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.loading-txt{text-align:center;color:var(--muted);font-size:.82rem;margin-top:8px;animation:pulse 1.5s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.gen-img-wrap img{width:100%;border-radius:var(--radius);border:1px solid var(--border);display:block}
+.caption-box{background:var(--surf2);border:1px solid var(--border);border-radius:9px;padding:13px;font-size:.88rem;line-height:1.6;white-space:pre-wrap;margin-top:11px;color:var(--text)}
+.caption-box[contenteditable="true"]{outline:none;border-color:var(--accent)}
+.caption-label{display:flex;justify-content:space-between;align-items:center;margin-bottom:5px}
+.edit-hint{font-size:.7rem;color:var(--muted)}
+.share-row{display:flex;gap:8px;margin-top:10px}
+.share-row a,.share-row button{flex:1;padding:10px 6px;border-radius:9px;font-family:var(--font);font-size:.8rem;font-weight:700;text-align:center;cursor:pointer;text-decoration:none;border:none;transition:opacity .15s}
+.share-row a:active,.share-row button:active{opacity:.7}
+.btn-wa{background:#25d366;color:#fff}
+.btn-fb{background:#1877f2;color:#fff}
+.btn-copy{background:var(--surf2);border:1px solid var(--border)!important;color:var(--text)}
+.btn-regen{background:transparent;border:1px solid var(--accent)!important;color:var(--accent)}
+.provider-used{font-size:.7rem;color:var(--muted);text-align:right;margin-top:4px}
+
+/* TOAST */
+#toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(60px);background:var(--green);color:#0b0c10;padding:9px 20px;border-radius:30px;font-size:.83rem;font-weight:700;opacity:0;transition:opacity .3s,transform .3s;z-index:999;white-space:nowrap;pointer-events:none}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* HISTORY */
+.hist-card{background:var(--surf);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:13px}
+.hist-card img{width:100%;display:block;max-height:190px;object-fit:cover}
+.hist-body{padding:12px}
+.hist-meta{font-size:.71rem;color:var(--muted);margin-bottom:5px;display:flex;gap:7px;align-items:center;flex-wrap:wrap}
+.hist-caption{font-size:.83rem;line-height:1.5;white-space:pre-wrap;color:var(--text);margin-bottom:9px;max-height:76px;overflow:hidden}
+.hist-caption.expanded{max-height:none}
+.hist-actions{display:flex;gap:7px;flex-wrap:wrap}
+.empty-state{text-align:center;padding:48px 20px;color:var(--muted);font-size:.88rem}
+.empty-state .icon{font-size:2.4rem;margin-bottom:9px}
+
+/* SETTINGS */
+.setting-row{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
+.tag-list{display:flex;flex-wrap:wrap;gap:6px;margin-top:5px}
+.tag{background:var(--surf2);border:1px solid var(--border);border-radius:20px;padding:5px 11px;font-size:.79rem;display:flex;align-items:center;gap:5px}
+.tag .x{cursor:pointer;color:var(--muted);font-size:.75rem}
+.add-row{display:flex;gap:7px;margin-top:8px}
+.add-row input{flex:1}
+
+/* BADGES */
+.badge{display:inline-block;padding:2px 8px;border-radius:5px;font-size:.69rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em}
+.badge-wa{background:#25d366;color:#0b0c10}
+.badge-fb{background:#1877f2;color:#fff}
+.badge-both{background:var(--accent2);color:#fff}
+
+/* PAGE HEADER */
+.page-title{font-size:1.1rem;font-weight:700;letter-spacing:-.02em;margin-bottom:3px}
+.page-sub{font-size:.78rem;color:var(--muted);margin-bottom:18px}
+
+/* ERROR */
+.err-box{background:#1f1010;border:1px solid #5a2020;border-radius:9px;padding:12px;color:#ff8080;font-size:.83rem;text-align:center;margin-top:11px}
+
+/* MD IMPORT */
+.import-zone{border:2px dashed var(--border);border-radius:10px;padding:22px;text-align:center;cursor:pointer;transition:border-color .2s;margin-bottom:10px}
+.import-zone:hover,.import-zone.drag{border-color:var(--accent)}
+.import-zone .icon{font-size:1.8rem;margin-bottom:6px}
+.import-zone p{font-size:.82rem;color:var(--muted)}
+.import-zone strong{color:var(--text)}
+#import-file{display:none}
+.import-result{background:var(--bg);border:1px solid var(--border);border-radius:9px;padding:12px;margin-top:10px;font-size:.82rem;line-height:1.6;max-height:200px;overflow-y:auto;white-space:pre-wrap;color:var(--text)}
+
+/* AI STATUS BADGE */
+.ai-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;font-size:.7rem;font-weight:700;border:1px solid var(--border);background:var(--surf2);color:var(--muted)}
+.ai-badge.live{border-color:var(--green);color:var(--green)}
+.ai-badge .blink{width:6px;height:6px;border-radius:50%;background:currentColor;animation:blink 1.2s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+
+/* SECTION DIVIDER */
+.divider{border:none;border-top:1px solid var(--border);margin:16px 0}
+</style>
+</head>
+<body>
+
+<nav>
+  <button class="active" data-tab="generate">⚡ Generate</button>
+  <button data-tab="history">📋 History</button>
+  <button data-tab="ai">🤖 AI Models</button>
+  <button data-tab="settings">⚙ Profile</button>
+</nav>
+
+<!-- ════════════════════════════════
+     TAB 1 – GENERATE
+════════════════════════════════ -->
+<div class="page active" id="tab-generate">
+  <p class="page-title" style="margin-top:16px">Create an ad</p>
+  <p class="page-sub">Pick a service, set the tone, generate.</p>
+
+  <div class="card">
+    <span class="label">Service / product</span>
+    <div id="product-chips"></div>
+    <input id="custom-product" placeholder="Or type a custom offer…"/>
+  </div>
+
+  <div class="card">
+    <div class="row" style="margin-bottom:11px">
+      <div>
+        <span class="label">Platform</span>
+        <select id="platform">
+          <option value="both">WA + Facebook</option>
+          <option value="whatsapp">WhatsApp</option>
+          <option value="facebook">Facebook</option>
+        </select>
+      </div>
+      <div>
+        <span class="label">Tone</span>
+        <select id="tone">
+          <option value="professional">Professional</option>
+          <option value="friendly">Friendly</option>
+          <option value="urgent">Urgent / promo</option>
+          <option value="storytelling">Storytelling</option>
+        </select>
+      </div>
+    </div>
+    <span class="label">Extra details (optional)</span>
+    <textarea id="extra-details" placeholder="Price, deadline, special offer, target audience…" rows="2"></textarea>
+  </div>
+
+  <div class="card">
+    <div class="row">
+      <div>
+        <span class="label">Image style</span>
+        <select id="img-style">
+          <option value="professional tech workspace, ultrawide monitor, clean minimal">Tech workspace</option>
+          <option value="futuristic digital interface, glowing UI, dark theme, holographic">Futuristic UI</option>
+          <option value="modern office collaboration, diverse team, bright natural light">Team collab</option>
+          <option value="flat design illustration, bold colors, vector art style">Flat illustration</option>
+          <option value="cinematic product photo, studio lighting, dark background, dramatic">Studio shot</option>
+        </select>
+      </div>
+      <div>
+        <span class="label">Format</span>
+        <select id="img-format">
+          <option value="1080x1080">Square 1:1</option>
+          <option value="1080x1920">Story 9:16</option>
+          <option value="1200x628">Facebook wide</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+    <div id="active-ai-badge" class="ai-badge">
+      <span class="blink"></span>
+      <span id="active-ai-label">Local templates</span>
+    </div>
+    <span style="font-size:.72rem;color:var(--muted)">Change in 🤖 AI Models tab</span>
+  </div>
+
+  <button class="btn btn-primary" id="gen-btn">⚡ Generate ad</button>
+  <div id="ad-preview"></div>
+</div>
+
+<!-- ════════════════════════════════
+     TAB 2 – HISTORY
+════════════════════════════════ -->
+<div class="page" id="tab-history">
+  <p class="page-title" style="margin-top:16px">Ad history</p>
+  <p class="page-sub">All ads saved on this device.</p>
+  <div id="history-list"></div>
+</div>
+
+<!-- ════════════════════════════════
+     TAB 3 – AI MODELS
+════════════════════════════════ -->
+<div class="page" id="tab-ai">
+  <p class="page-title" style="margin-top:16px">AI Models</p>
+  <p class="page-sub">Configure image & text providers. Keys stored locally only.</p>
+
+  <!-- IMAGE AI -->
+  <div class="card">
+    <div class="card-title">🖼 Image generation</div>
+    <span class="label">Provider</span>
+    <div class="provider-row" id="img-provider-pills">
+      <div class="prov-pill active" data-img="pollinations">
+        <span class="dot"></span>Pollinations
+      </div>
+      <div class="prov-pill no-key" data-img="huggingface">
+        <span class="dot"></span>Hugging Face
+      </div>
+      <div class="prov-pill no-key" data-img="stability">
+        <span class="dot"></span>Stability AI
+      </div>
+    </div>
+
+    <!-- Pollinations info -->
+    <div class="key-area" id="info-pollinations">
+      ✅ <strong>No API key needed.</strong> Free, unlimited, no signup required. Powered by FLUX models.
+    </div>
+
+    <!-- HuggingFace key -->
+    <div class="key-area" id="info-huggingface" style="display:none">
+      🔑 Requires a free Hugging Face token.<br>
+      <a href="https://huggingface.co/settings/tokens" target="_blank">→ Get your free token at huggingface.co/settings/tokens</a>
+      <div class="key-row">
+        <input type="password" id="hf-key" placeholder="hf_xxxxxxxxxxxxxxxx"/>
+        <button class="btn btn-outline btn-sm" id="hf-save-btn">Save</button>
+      </div>
+      <div class="key-status" id="hf-status"></div>
+      <div style="margin-top:8px;font-size:.77rem;color:var(--muted)">
+        Model: <code>black-forest-labs/FLUX.1-schnell</code> · High quality, ~10s
+      </div>
+    </div>
+
+    <!-- Stability key -->
+    <div class="key-area" id="info-stability" style="display:none">
+      🔑 Requires a Stability AI key. Free tier: <strong>25 images/month</strong>.<br>
+      <a href="https://platform.stability.ai/account/keys" target="_blank">→ Get your key at platform.stability.ai</a>
+      <div class="key-row">
+        <input type="password" id="stab-key" placeholder="sk-xxxxxxxxxxxxxxxx"/>
+        <button class="btn btn-outline btn-sm" id="stab-save-btn">Save</button>
+      </div>
+      <div class="key-status" id="stab-status"></div>
+      <div style="margin-top:8px;font-size:.77rem;color:var(--muted)">
+        Model: <code>stable-diffusion-xl-1024-v1-0</code> · Best quality
+      </div>
+    </div>
+  </div>
+
+  <!-- TEXT AI -->
+  <div class="card">
+    <div class="card-title">✍️ Caption / text generation</div>
+    <span class="label">Provider</span>
+    <div class="provider-row" id="txt-provider-pills">
+      <div class="prov-pill active" data-txt="local">
+        <span class="dot"></span>Local
+      </div>
+      <div class="prov-pill no-key" data-txt="groq">
+        <span class="dot"></span>Groq
+      </div>
+      <div class="prov-pill no-key" data-txt="gemini">
+        <span class="dot"></span>Gemini
+      </div>
+    </div>
+
+    <!-- Local info -->
+    <div class="key-area" id="info-txt-local">
+      ✅ <strong>Smart local templates.</strong> No internet needed for captions. Instant, private, uses your profile.
+    </div>
+
+    <!-- Groq key -->
+    <div class="key-area" id="info-txt-groq" style="display:none">
+      🔑 Groq is <strong>free</strong> with generous limits (14,400 req/day).<br>
+      <a href="https://console.groq.com/keys" target="_blank">→ Get your free key at console.groq.com/keys</a>
+      <div class="key-row">
+        <input type="password" id="groq-key" placeholder="gsk_xxxxxxxxxxxxxxxx"/>
+        <button class="btn btn-outline btn-sm" id="groq-save-btn">Save</button>
+      </div>
+      <div class="key-status" id="groq-status"></div>
+      <div style="margin-top:8px">
+        <span class="label" style="margin-bottom:4px">Model</span>
+        <select id="groq-model">
+          <option value="llama-3.3-70b-versatile">Llama 3.3 70B (best quality)</option>
+          <option value="llama-3.1-8b-instant">Llama 3.1 8B (fastest)</option>
+          <option value="mixtral-8x7b-32768">Mixtral 8x7B (creative)</option>
+          <option value="gemma2-9b-it">Gemma 2 9B (balanced)</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Gemini key -->
+    <div class="key-area" id="info-txt-gemini" style="display:none">
+      🔑 Google Gemini free tier: <strong>1,500 req/day</strong>, no credit card.<br>
+      <a href="https://aistudio.google.com/app/apikey" target="_blank">→ Get your free key at aistudio.google.com</a>
+      <div class="key-row">
+        <input type="password" id="gemini-key" placeholder="AIzaSy…"/>
+        <button class="btn btn-outline btn-sm" id="gemini-save-btn">Save</button>
+      </div>
+      <div class="key-status" id="gemini-status"></div>
+      <div style="margin-top:8px">
+        <span class="label" style="margin-bottom:4px">Model</span>
+        <select id="gemini-model">
+          <option value="gemini-2.0-flash">Gemini 2.0 Flash (fast, free)</option>
+          <option value="gemini-1.5-flash">Gemini 1.5 Flash (stable)</option>
+          <option value="gemini-1.5-pro">Gemini 1.5 Pro (best, limited)</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- MD PRODUCT IMPORT -->
+  <div class="card">
+    <div class="card-title">📄 Import products from .md file</div>
+    <p style="font-size:.8rem;color:var(--muted);margin-bottom:12px">
+      Upload any Markdown file describing your services. The active text AI will scan it and extract products, skills, pricing and anything relevant — then add them to your profile.
+    </p>
+    <div class="import-zone" id="import-zone">
+      <div class="icon">📂</div>
+      <p><strong>Tap to choose a .md file</strong></p>
+      <p>or drag and drop here</p>
+    </div>
+    <input type="file" id="import-file" accept=".md,.txt"/>
+    <div id="import-status" style="font-size:.8rem;color:var(--muted);margin-top:6px"></div>
+    <div id="import-result" class="import-result" style="display:none"></div>
+    <button class="btn btn-green" id="import-apply-btn" style="display:none;margin-top:10px">✅ Add extracted items to profile</button>
+  </div>
+</div>
+
+<!-- ════════════════════════════════
+     TAB 4 – PROFILE / SETTINGS
+════════════════════════════════ -->
+<div class="page" id="tab-settings">
+  <p class="page-title" style="margin-top:16px">Your profile</p>
+  <p class="page-sub">Used as context in every AI-generated caption.</p>
+
+  <div class="card">
+    <div class="setting-row">
+      <span class="label">Your name / brand</span>
+      <input id="s-name" placeholder="e.g. Sipho Dev Studio"/>
+    </div>
+    <div class="setting-row">
+      <span class="label">Tagline / USP</span>
+      <input id="s-usp" placeholder="e.g. Fast, affordable websites for SA businesses"/>
+    </div>
+    <div class="setting-row">
+      <span class="label">Contact (shown in ads)</span>
+      <input id="s-contact" placeholder="e.g. WhatsApp: 082 000 0000"/>
+    </div>
+    <div class="setting-row">
+      <span class="label">Tech skills / stack</span>
+      <div class="tag-list" id="skills-list"></div>
+      <div class="add-row">
+        <input id="new-skill" placeholder="Add skill (e.g. React, Shopify)"/>
+        <button class="btn btn-outline btn-sm" id="add-skill-btn">Add</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <span class="label">Services / products</span>
+    <p style="font-size:.79rem;color:var(--muted);margin-bottom:10px">These appear as chips on the Generate tab.</p>
+    <div class="tag-list" id="products-list"></div>
+    <div class="add-row">
+      <input id="new-product" placeholder="Add service (e.g. E-commerce site)"/>
+      <button class="btn btn-outline btn-sm" id="add-product-btn">Add</button>
+    </div>
+  </div>
+
+  <button class="btn btn-green" id="save-settings-btn">Save profile</button>
+  <button class="btn btn-danger" id="clear-history-btn" style="margin-top:10px">Clear ad history</button>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ══════════════════════════════════════
+// STATE
+// ══════════════════════════════════════
+const SK = 'adforge_v2';
+
+function loadState() {
+  try { const r = localStorage.getItem(SK); if (r) return JSON.parse(r); } catch(e){}
+  return {
+    profile: {
+      name:'', usp:'Fast, affordable web solutions', contact:'',
+      skills:['HTML/CSS','JavaScript','React','WordPress','SEO','Shopify','Node.js','PHP','Vue.js','Next.js'],
+      products:['Business Website','Landing Page','E-commerce Store','Web App','SEO Audit','Website Redesign','WhatsApp Integration','Hosting & Maintenance']
+    },
+    providers: {
+      img: 'pollinations',   // pollinations | huggingface | stability
+      txt: 'local',          // local | groq | gemini
+      hfKey: '', stabKey: '', groqKey: '', geminiKey: '',
+      groqModel: 'llama-3.3-70b-versatile',
+      geminiModel: 'gemini-2.0-flash'
+    },
+    history: []
+  };
+}
+
+function saveState() { localStorage.setItem(SK, JSON.stringify(state)); }
+let state = loadState();
+
+// extracted items from MD import
+let importedItems = null;
+
+// ══════════════════════════════════════
+// TABS
+// ══════════════════════════════════════
+document.querySelectorAll('nav button').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+    if (btn.dataset.tab === 'history')  renderHistory();
+    if (btn.dataset.tab === 'settings') renderSettings();
+    if (btn.dataset.tab === 'ai')       renderAiTab();
+  });
+});
+
+// ══════════════════════════════════════
+// PRODUCT CHIPS
+// ══════════════════════════════════════
+let selectedProduct = '';
+
+function renderProductChips() {
+  const c = document.getElementById('product-chips');
+  c.innerHTML = '';
+  state.profile.products.forEach(p => {
+    const el = document.createElement('div');
+    el.className = 'p-chip' + (selectedProduct === p ? ' selected' : '');
+    el.textContent = p;
+    el.onclick = () => {
+      selectedProduct = selectedProduct === p ? '' : p;
+      document.getElementById('custom-product').value = '';
+      renderProductChips();
+    };
+    c.appendChild(el);
+  });
+}
+document.getElementById('custom-product').addEventListener('input', () => {
+  selectedProduct = '';
+  renderProductChips();
+});
+renderProductChips();
+
+// ══════════════════════════════════════
+// UPDATE AI BADGE ON GENERATE TAB
+// ══════════════════════════════════════
+function updateAiBadge() {
+  const labels = {
+    local:'Local templates', groq:`Groq · ${state.providers.groqModel.split('-').slice(0,2).join(' ')}`,
+    gemini:`Gemini · ${state.providers.geminiModel}`
+  };
+  const imgLabels = {
+    pollinations:'Pollinations', huggingface:'Hugging Face FLUX', stability:'Stability AI SDXL'
+  };
+  const txt = state.providers.txt;
+  const img = state.providers.img;
+  document.getElementById('active-ai-label').textContent =
+    `${imgLabels[img]} + ${labels[txt]}`;
+  const badge = document.getElementById('active-ai-badge');
+  badge.className = 'ai-badge' + (txt !== 'local' || img !== 'pollinations' ? ' live' : '');
+}
+updateAiBadge();
+
+// ══════════════════════════════════════
+// GENERATE
+// ══════════════════════════════════════
+const genBtn = document.getElementById('gen-btn');
+const preview = document.getElementById('ad-preview');
+
+genBtn.addEventListener('click', () => {
+  const product = selectedProduct || document.getElementById('custom-product').value.trim();
+  if (!product) { toast('Pick or type a service first', false); return; }
+  runGenerate(product);
+});
+
+async function runGenerate(product) {
+  genBtn.disabled = true;
+  genBtn.textContent = '⚡ Generating…';
+
+  const platform  = document.getElementById('platform').value;
+  const tone      = document.getElementById('tone').value;
+  const extra     = document.getElementById('extra-details').value.trim();
+  const imgStyle  = document.getElementById('img-style').value;
+  const [w, h]    = document.getElementById('img-format').value.split('x');
+
+  preview.innerHTML = `
+    <div style="margin-top:14px">
+      <div class="skeleton" style="aspect-ratio:${w}/${h}"></div>
+      <p class="loading-txt" id="load-txt">Building your ad…</p>
+    </div>`;
+
+  // Run caption + image concurrently
+  const setLoadTxt = t => { const el=document.getElementById('load-txt'); if(el) el.textContent=t; };
+
+  let caption = '', captionProvider = 'local', imgUrl = '', imgProvider = state.providers.img;
+
+  const captionTask = (async () => {
+    setLoadTxt('Writing caption…');
+    try {
+      const result = await generateCaption(product, platform, tone, extra);
+      caption = result.text;
+      captionProvider = result.provider;
+    } catch(e) {
+      caption = generateLocalCaption(product, platform, tone, extra);
+      captionProvider = 'local (fallback)';
+    }
+  })();
+
+  const imgTask = (async () => {
+    setLoadTxt('Generating image…');
+    try {
+      imgUrl = await generateImage(product, imgStyle, w, h);
+    } catch(e) {
+      throw new Error('Image failed: ' + e.message);
+    }
+  })();
+
+  try {
+    await Promise.all([captionTask, imgTask]);
+  } catch(e) {
+    preview.innerHTML = `<div class="err-box">Failed: ${e.message}<br><small>Check your API keys or internet connection.</small></div>`;
+    genBtn.disabled = false; genBtn.textContent = '⚡ Generate ad';
+    return;
+  }
+
+  const entry = { id:Date.now(), product, platform, tone, caption, imgUrl, captionProvider, imgProvider, date:new Date().toISOString() };
+  state.history.unshift(entry);
+  if (state.history.length > 60) state.history = state.history.slice(0, 60);
+  saveState();
+
+  renderAdResult(entry);
+  genBtn.disabled = false; genBtn.textContent = '⚡ Generate ad';
+}
+
+function renderAdResult(entry, container) {
+  const el = container || preview;
+  const platformBadge = entry.platform === 'both' ? '<span class="badge badge-both">WA + FB</span>'
+    : entry.platform === 'whatsapp' ? '<span class="badge badge-wa">WhatsApp</span>'
+    : '<span class="badge badge-fb">Facebook</span>';
+
+  const waText  = encodeURIComponent(entry.caption);
+  const waShare = `https://wa.me/?text=${waText}`;
+  const fbShare = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(entry.imgUrl)}`;
+
+  el.innerHTML = `
+    <div style="margin-top:14px">
+      <div class="gen-img-wrap"><img src="${entry.imgUrl}" alt="Ad image"/></div>
+      <div style="display:flex;align-items:center;gap:8px;margin-top:9px">
+        ${platformBadge}
+        <span style="font-size:.72rem;color:var(--muted)">${esc(entry.product)} · ${entry.tone}</span>
+      </div>
+      <div class="caption-label" style="margin-top:10px">
+        <span class="label" style="margin:0">Caption <span class="edit-hint">(tap to edit)</span></span>
+      </div>
+      <div id="gen-caption" class="caption-box" contenteditable="true">${esc(entry.caption)}</div>
+      <div class="provider-used">via ${esc(entry.captionProvider||'local')} · ${esc(entry.imgProvider||'pollinations')}</div>
+      <div class="share-row">
+        <a class="btn-wa" href="${waShare}" target="_blank">📲 WhatsApp</a>
+        <a class="btn-fb" href="${fbShare}" target="_blank">📘 Facebook</a>
+      </div>
+      <div class="share-row">
+        <button class="btn-copy" id="copy-btn">📋 Copy</button>
+        <button class="btn-regen" id="regen-btn">↺ Regenerate</button>
+      </div>
+    </div>`;
+
+  const captionBox = el.querySelector('#gen-caption');
+
+  el.querySelector('#copy-btn').addEventListener('click', () => {
+    const text = captionBox.innerText;
+    navigator.clipboard.writeText(text).then(() => toast('Caption copied!')).catch(() => {
+      const ta = document.createElement('textarea');
+      ta.value = text; document.body.appendChild(ta); ta.select();
+      document.execCommand('copy'); document.body.removeChild(ta);
+      toast('Caption copied!');
+    });
+  });
+
+  el.querySelector('#regen-btn').addEventListener('click', () => {
+    const product = entry.product;
+    document.getElementById('custom-product').value = product;
+    selectedProduct = '';
+    runGenerate(product);
+  });
+}
+
+// ══════════════════════════════════════
+// IMAGE GENERATION
+// ══════════════════════════════════════
+async function generateImage(product, style, w, h) {
+  const prov = state.providers.img;
+
+  if (prov === 'huggingface' && state.providers.hfKey) {
+    return await generateImageHF(product, style, w, h);
+  }
+  if (prov === 'stability' && state.providers.stabKey) {
+    return await generateImageStability(product, style, w, h);
+  }
+  // fallback / pollinations
+  return generateImagePollinations(product, style, w, h);
+}
+
+function generateImagePollinations(product, style, w, h) {
+  const prompt = `${style}, ${product} web development service, professional, no text, high quality`;
+  const seed = Math.floor(Math.random() * 999999);
+  const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=${w}&height=${h}&model=flux&seed=${seed}&nologo=true`;
+  return new Promise((res, rej) => {
+    const img = new Image();
+    img.onload = () => res(url);
+    img.onerror = () => rej(new Error('Pollinations failed'));
+    img.src = url;
+  });
+}
+
+async function generateImageHF(product, style, w, h) {
+  const prompt = `${style}, ${product} web development service, professional, no text overlay, 4k, sharp`;
+  const res = await fetch('https://api-inference.huggingface.co/models/black-forest-labs/FLUX.1-schnell', {
+    method:'POST',
+    headers:{ Authorization:`Bearer ${state.providers.hfKey}`, 'Content-Type':'application/json' },
+    body: JSON.stringify({ inputs: prompt, parameters:{ width:parseInt(w), height:parseInt(h) } })
+  });
+  if (!res.ok) throw new Error(`HF error ${res.status}`);
+  const blob = await res.blob();
+  return URL.createObjectURL(blob);
+}
+
+async function generateImageStability(product, style, w, h) {
+  const prompt = `${style}, ${product} freelance web developer service, professional advertising image, no text`;
+  const formData = new FormData();
+  formData.append('prompt', prompt);
+  formData.append('output_format', 'webp');
+  formData.append('width', Math.min(parseInt(w), 1024).toString());
+  formData.append('height', Math.min(parseInt(h), 1024).toString());
+
+  const res = await fetch('https://api.stability.ai/v2beta/stable-image/generate/core', {
+    method:'POST',
+    headers:{ Authorization:`Bearer ${state.providers.stabKey}`, Accept:'image/*' },
+    body: formData
+  });
+  if (!res.ok) throw new Error(`Stability error ${res.status}`);
+  const blob = await res.blob();
+  return URL.createObjectURL(blob);
+}
+
+// ══════════════════════════════════════
+// CAPTION GENERATION
+// ══════════════════════════════════════
+async function generateCaption(product, platform, tone, extra) {
+  const prov = state.providers.txt;
+  if (prov === 'groq' && state.providers.groqKey)   return await captionGroq(product, platform, tone, extra);
+  if (prov === 'gemini' && state.providers.geminiKey) return await captionGemini(product, platform, tone, extra);
+  return { text: generateLocalCaption(product, platform, tone, extra), provider:'local' };
+}
+
+function buildSystemPrompt() {
+  const p = state.profile;
+  return `You are an expert ad copywriter for a freelance web developer.
+BRAND: ${p.name||'Freelance Web Developer'}
+USP: ${p.usp||'Fast, affordable web solutions'}
+SKILLS: ${p.skills.join(', ')}
+CONTACT: ${p.contact||'(not set)'}
+RULES: Write ONLY the final ad caption. No preamble, no labels, no markdown headers.
+Use line breaks for readability. Include relevant emojis. End with contact info.`;
+}
+
+function buildUserPrompt(product, platform, tone, extra) {
+  const platformGuide = {
+    whatsapp: 'WhatsApp: concise, warm, clear CTA, contact at end.',
+    facebook: 'Facebook: hook + 2-3 paragraphs + 4-5 hashtags at end.',
+    both: 'Works for both WhatsApp and Facebook: hook, value, CTA, contact, 3-4 hashtags.'
+  }[platform];
+  const toneGuide = {
+    professional:'Professional, confident, trust-building.',
+    friendly:'Warm, conversational, like a friend recommending.',
+    urgent:'Creates urgency, strong CTA, limited offer.',
+    storytelling:'Problem → solution → result narrative.'
+  }[tone];
+  return `Write a ${tone} ${platform} ad for: "${product}"
+Platform style: ${platformGuide}
+Tone: ${toneGuide}${extra ? `\nExtra details: ${extra}` : ''}`;
+}
+
+async function captionGroq(product, platform, tone, extra) {
+  const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    method:'POST',
+    headers:{ Authorization:`Bearer ${state.providers.groqKey}`, 'Content-Type':'application/json' },
+    body: JSON.stringify({
+      model: state.providers.groqModel,
+      max_tokens: 600,
+      messages:[
+        { role:'system', content: buildSystemPrompt() },
+        { role:'user',   content: buildUserPrompt(product, platform, tone, extra) }
+      ]
+    })
+  });
+  if (!res.ok) { const e = await res.json(); throw new Error(e.error?.message || `Groq ${res.status}`); }
+  const data = await res.json();
+  return { text: data.choices[0].message.content.trim(), provider:`Groq · ${state.providers.groqModel}` };
+}
+
+async function captionGemini(product, platform, tone, extra) {
+  const model = state.providers.geminiModel;
+  const key   = state.providers.geminiKey;
+  const url   = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`;
+  const res   = await fetch(url, {
+    method:'POST',
+    headers:{ 'Content-Type':'application/json' },
+    body: JSON.stringify({
+      system_instruction:{ parts:[{ text: buildSystemPrompt() }] },
+      contents:[{ role:'user', parts:[{ text: buildUserPrompt(product, platform, tone, extra) }] }],
+      generationConfig:{ maxOutputTokens:600 }
+    })
+  });
+  if (!res.ok) { const e = await res.json(); throw new Error(e.error?.message || `Gemini ${res.status}`); }
+  const data = await res.json();
+  const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+  return { text: text.trim(), provider:`Gemini · ${model}` };
+}
+
+// ══════════════════════════════════════
+// LOCAL TEMPLATE ENGINE
+// ══════════════════════════════════════
+function generateLocalCaption(product, platform, tone, extra) {
+  const p = state.profile;
+  const name = p.name || 'a freelance web developer';
+  const usp  = p.usp  || 'fast, affordable web solutions';
+  const contact = p.contact || '';
+  const skills = p.skills.length ? p.skills : ['HTML/CSS','JavaScript','React','WordPress'];
+  const feat = shuffle([...skills]).slice(0,3).join(' · ');
+  const contactLine = contact ? `📞 ${contact}` : '';
+  const extraLine   = extra   ? `📌 ${extra}` : '';
+  const productTag  = '#' + product.replace(/\s+/g,'').replace(/[^a-zA-Z0-9]/g,'');
+
+  const hooks = {
+    professional:[`Looking for a professional ${product}?`,`Your business deserves a ${product} that works as hard as you do.`,`A strong ${product} is your #1 sales tool — let's build it right.`],
+    friendly:[`Hey! 👋 Need a ${product}? I've got you covered.`,`Let's build something great — a ${product} your customers will love! 🚀`,`Still running without a ${product}? Let's fix that! 😊`],
+    urgent:[`⚡ LIMITED SLOTS — ${product} at a special rate!`,`🔥 Don't miss out — ${product} spots filling fast!`,`⏳ This week only: discounted ${product} available!`],
+    storytelling:[`A client came to me without a ${product}. Three weeks later, everything changed.`,`Every day without a ${product} is a day your competitors gain ground.`,`Before: no online presence. After: a ${product} bringing in new leads weekly.`]
+  };
+  const valueProps = {
+    professional:[`I build ${product}s using ${feat} — clean, fast, built to last.`,`Specialising in ${feat}, I deliver ${product}s that drive real results.`],
+    friendly:[`I use ${feat} to build ${product}s that look great and actually work! 💻`,`Built with ${feat} — fast, modern & mobile-friendly. 📱`],
+    urgent:[`Built with ${feat} — fast delivery, professional results.`,`${feat} expertise. Quick turnaround. Zero compromises. ⚡`],
+    storytelling:[`Using ${feat}, I built them a ${product} that converts visitors into customers.`,`My approach: ${feat} — the right tools, done properly.`]
+  };
+  const ctas = {
+    professional:[`Get in touch today to discuss your ${product}.`,`Ready? Let's talk — free consultation available.`],
+    friendly:[`Drop me a message — let's chat! 😊`,`DM me to get your ${product} started today! 🙌`],
+    urgent:[`Message me NOW to secure your spot! 🔥`,`Don't wait — claim your discounted ${product} today!`],
+    storytelling:[`Your story could be next. Reach out today.`,`Let me help you write your next chapter. Message me.`]
+  };
+  const hashtags = [`#WebDeveloper ${productTag} #FreelanceDev #WebDesign #DigitalMarketing`,
+                    `#WebDev #BusinessGrowth ${productTag} #TechSolutions #AffordableWebDesign`];
+
+  const hook      = pick(hooks[tone]);
+  const valueProp = pick(valueProps[tone]);
+  const cta       = pick(ctas[tone]);
+
+  const lines = [hook,'', valueProp, usp ? `✅ ${usp}` : '', extraLine, '', cta, contactLine];
+  if (platform === 'facebook' || platform === 'both') lines.push('', pick(hashtags));
+  return lines.filter(Boolean).join('\n');
+}
+
+// ══════════════════════════════════════
+// MD FILE IMPORT
+// ══════════════════════════════════════
+const importZone = document.getElementById('import-zone');
+const importFile = document.getElementById('import-file');
+const importStatus = document.getElementById('import-status');
+const importResult = document.getElementById('import-result');
+const importApplyBtn = document.getElementById('import-apply-btn');
+
+importZone.addEventListener('click', () => importFile.click());
+importZone.addEventListener('dragover', e => { e.preventDefault(); importZone.classList.add('drag'); });
+importZone.addEventListener('dragleave', () => importZone.classList.remove('drag'));
+importZone.addEventListener('drop', e => {
+  e.preventDefault(); importZone.classList.remove('drag');
+  const file = e.dataTransfer.files[0];
+  if (file) processImportFile(file);
+});
+importFile.addEventListener('change', () => {
+  if (importFile.files[0]) processImportFile(importFile.files[0]);
+});
+
+async function processImportFile(file) {
+  const text = await file.text();
+  importStatus.textContent = `Read ${file.name} (${(file.size/1024).toFixed(1)} KB). Scanning with AI…`;
+  importResult.style.display = 'none';
+  importApplyBtn.style.display = 'none';
+  importedItems = null;
+
+  const prompt = `You are analyzing a freelance web developer's Markdown file.
+Extract ALL relevant information and return ONLY a JSON object with these fields:
+{
+  "products": ["array of service/product names found"],
+  "skills": ["array of tech skills/tools found"],
+  "usp": "unique selling proposition if found, else empty string",
+  "contact": "contact info if found, else empty string",
+  "name": "brand/person name if found, else empty string",
+  "notes": "1-2 sentence summary of what was found"
+}
+Be smart: infer product names from descriptions, extract tech stacks, detect pricing notes.
+Return ONLY the JSON, no markdown fences, no explanation.
+
+FILE CONTENT:
+${text.slice(0, 8000)}`;
+
+  try {
+    let result;
+    if (state.providers.txt === 'groq' && state.providers.groqKey) {
+      const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method:'POST',
+        headers:{ Authorization:`Bearer ${state.providers.groqKey}`, 'Content-Type':'application/json' },
+        body: JSON.stringify({ model: state.providers.groqModel, max_tokens:800,
+          messages:[{ role:'user', content: prompt }] })
+      });
+      const data = await res.json();
+      result = JSON.parse(data.choices[0].message.content.trim());
+    } else if (state.providers.txt === 'gemini' && state.providers.geminiKey) {
+      const model = state.providers.geminiModel;
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${state.providers.geminiKey}`;
+      const res = await fetch(url, {
+        method:'POST', headers:{ 'Content-Type':'application/json' },
+        body: JSON.stringify({ contents:[{ role:'user', parts:[{ text: prompt }] }], generationConfig:{ maxOutputTokens:800 } })
+      });
+      const data = await res.json();
+      const raw = data.candidates?.[0]?.content?.parts?.[0]?.text || '{}';
+      result = JSON.parse(raw.replace(/```json|```/g,'').trim());
+    } else {
+      // Local fallback: simple regex extraction
+      const lines = text.split('\n');
+      const products = lines.filter(l => /^#+\s/.test(l)).map(l => l.replace(/^#+\s*/,'').trim()).filter(Boolean);
+      const skillWords = ['react','vue','angular','node','php','wordpress','shopify','python','javascript','typescript','html','css','tailwind','next','nuxt','laravel','django','mysql','mongodb','firebase','aws','docker'];
+      const skills = skillWords.filter(s => text.toLowerCase().includes(s)).map(s => s.charAt(0).toUpperCase()+s.slice(1));
+      result = { products: products.slice(0,12), skills: [...new Set(skills)], usp:'', contact:'', name:'', notes:'Extracted using local parser (no AI key set).' };
+    }
+
+    importedItems = result;
+    const summary = `✅ ${result.notes||'Scan complete.'}\n\nProducts found (${result.products.length}): ${result.products.join(', ') || 'none'}\nSkills found (${result.skills.length}): ${result.skills.join(', ') || 'none'}${result.usp ? '\nUSP: '+result.usp : ''}${result.name ? '\nName: '+result.name : ''}${result.contact ? '\nContact: '+result.contact : ''}`;
+    importResult.textContent = summary;
+    importResult.style.display = 'block';
+    importStatus.textContent = '';
+    if (result.products.length || result.skills.length) {
+      importApplyBtn.style.display = 'block';
+    }
+  } catch(e) {
+    importStatus.textContent = '';
+    importResult.textContent = '❌ Scan failed: ' + e.message + '\nTip: Make sure a text AI with a valid key is selected in this tab.';
+    importResult.style.display = 'block';
+  }
+}
+
+importApplyBtn.addEventListener('click', () => {
+  if (!importedItems) return;
+  let added = 0;
+  importedItems.products.forEach(p => {
+    if (p && !state.profile.products.includes(p)) { state.profile.products.push(p); added++; }
+  });
+  importedItems.skills.forEach(s => {
+    if (s && !state.profile.skills.includes(s)) { state.profile.skills.push(s); added++; }
+  });
+  if (importedItems.name && !state.profile.name) state.profile.name = importedItems.name;
+  if (importedItems.usp  && !state.profile.usp)  state.profile.usp  = importedItems.usp;
+  if (importedItems.contact && !state.profile.contact) state.profile.contact = importedItems.contact;
+  saveState();
+  renderProductChips();
+  toast(`Added ${added} items to your profile!`);
+  importApplyBtn.style.display = 'none';
+  importResult.textContent += `\n\n✅ Applied to profile!`;
+});
+
+// ══════════════════════════════════════
+// AI TAB – PROVIDER PILLS & KEY SAVING
+// ══════════════════════════════════════
+function renderAiTab() {
+  // Image pills
+  document.querySelectorAll('[data-img]').forEach(pill => {
+    const p = pill.dataset.img;
+    pill.classList.toggle('active', state.providers.img === p);
+    const hasKey = p === 'pollinations' || (p === 'huggingface' && state.providers.hfKey) || (p === 'stability' && state.providers.stabKey);
+    pill.classList.toggle('no-key', !hasKey);
+    pill.querySelector('.dot').style.background = state.providers.img === p ? 'var(--green)' : (hasKey ? 'var(--yellow)' : 'var(--muted)');
+  });
+
+  // Text pills
+  document.querySelectorAll('[data-txt]').forEach(pill => {
+    const p = pill.dataset.txt;
+    pill.classList.toggle('active', state.providers.txt === p);
+    const hasKey = p === 'local' || (p === 'groq' && state.providers.groqKey) || (p === 'gemini' && state.providers.geminiKey);
+    pill.classList.toggle('no-key', !hasKey);
+    pill.querySelector('.dot').style.background = state.providers.txt === p ? 'var(--green)' : (hasKey ? 'var(--yellow)' : 'var(--muted)');
+  });
+
+  // Show correct info panels
+  showImgPanel(state.providers.img);
+  showTxtPanel(state.providers.txt);
+
+  // Populate saved keys (masked)
+  if (state.providers.hfKey)   document.getElementById('hf-key').value   = state.providers.hfKey;
+  if (state.providers.stabKey) document.getElementById('stab-key').value = state.providers.stabKey;
+  if (state.providers.groqKey) document.getElementById('groq-key').value = state.providers.groqKey;
+  if (state.providers.geminiKey) document.getElementById('gemini-key').value = state.providers.geminiKey;
+  document.getElementById('groq-model').value   = state.providers.groqModel;
+  document.getElementById('gemini-model').value = state.providers.geminiModel;
+}
+
+function showImgPanel(name) {
+  ['pollinations','huggingface','stability'].forEach(n =>
+    document.getElementById('info-'+n).style.display = n === name ? 'block' : 'none');
+}
+function showTxtPanel(name) {
+  ['local','groq','gemini'].forEach(n =>
+    document.getElementById('info-txt-'+n).style.display = n === name ? 'block' : 'none');
+}
+
+// Provider pill clicks
+document.querySelectorAll('[data-img]').forEach(pill => {
+  pill.addEventListener('click', () => {
+    state.providers.img = pill.dataset.img;
+    saveState(); renderAiTab(); updateAiBadge();
+  });
+});
+document.querySelectorAll('[data-txt]').forEach(pill => {
+  pill.addEventListener('click', () => {
+    state.providers.txt = pill.dataset.txt;
+    saveState(); renderAiTab(); updateAiBadge();
+  });
+});
+
+// Key save buttons
+function makeKeySaver(inputId, stateKey, statusId, label) {
+  document.getElementById(inputId.replace('input','') + 'save-btn') ||
+  document.querySelector(`[id$="${inputId.split('-')[0]}-save-btn"]`);
+
+  const saveBtn = document.getElementById(inputId.split('-')[0] + '-save-btn');
+  if (!saveBtn) return;
+  saveBtn.addEventListener('click', () => {
+    const val = document.getElementById(inputId).value.trim();
+    state.providers[stateKey] = val;
+    saveState(); renderAiTab(); updateAiBadge();
+    const statusEl = document.getElementById(statusId);
+    if (val) { statusEl.textContent = `✅ ${label} key saved.`; statusEl.className='key-status ok'; }
+    else     { statusEl.textContent = 'Key cleared.'; statusEl.className='key-status warn'; }
+  });
+}
+
+document.getElementById('hf-save-btn').addEventListener('click', () => {
+  state.providers.hfKey = document.getElementById('hf-key').value.trim();
+  saveState(); renderAiTab(); updateAiBadge();
+  const el = document.getElementById('hf-status');
+  el.textContent = state.providers.hfKey ? '✅ Hugging Face key saved.' : 'Key cleared.';
+  el.className = 'key-status ' + (state.providers.hfKey ? 'ok' : 'warn');
+});
+
+document.getElementById('stab-save-btn').addEventListener('click', () => {
+  state.providers.stabKey = document.getElementById('stab-key').value.trim();
+  saveState(); renderAiTab(); updateAiBadge();
+  const el = document.getElementById('stab-status');
+  el.textContent = state.providers.stabKey ? '✅ Stability AI key saved.' : 'Key cleared.';
+  el.className = 'key-status ' + (state.providers.stabKey ? 'ok' : 'warn');
+});
+
+document.getElementById('groq-save-btn').addEventListener('click', () => {
+  state.providers.groqKey   = document.getElementById('groq-key').value.trim();
+  state.providers.groqModel = document.getElementById('groq-model').value;
+  saveState(); renderAiTab(); updateAiBadge();
+  const el = document.getElementById('groq-status');
+  el.textContent = state.providers.groqKey ? '✅ Groq key saved.' : 'Key cleared.';
+  el.className = 'key-status ' + (state.providers.groqKey ? 'ok' : 'warn');
+});
+
+document.getElementById('gemini-save-btn').addEventListener('click', () => {
+  state.providers.geminiKey   = document.getElementById('gemini-key').value.trim();
+  state.providers.geminiModel = document.getElementById('gemini-model').value;
+  saveState(); renderAiTab(); updateAiBadge();
+  const el = document.getElementById('gemini-status');
+  el.textContent = state.providers.geminiKey ? '✅ Gemini key saved.' : 'Key cleared.';
+  el.className = 'key-status ' + (state.providers.geminiKey ? 'ok' : 'warn');
+});
+
+// Model change auto-save
+document.getElementById('groq-model').addEventListener('change', () => {
+  state.providers.groqModel = document.getElementById('groq-model').value;
+  saveState(); updateAiBadge();
+});
+document.getElementById('gemini-model').addEventListener('change', () => {
+  state.providers.geminiModel = document.getElementById('gemini-model').value;
+  saveState(); updateAiBadge();
+});
+
+// ══════════════════════════════════════
+// HISTORY
+// ══════════════════════════════════════
+function renderHistory() {
+  const el = document.getElementById('history-list');
+  if (!state.history.length) {
+    el.innerHTML = `<div class="empty-state"><div class="icon">📭</div>No ads yet.<br>Generate your first ad to see it here.</div>`;
+    return;
+  }
+  el.innerHTML = state.history.map((entry, idx) => {
+    const d    = new Date(entry.date);
+    const date = d.toLocaleDateString('en-ZA',{day:'numeric',month:'short',year:'numeric'});
+    const time = d.toLocaleTimeString('en-ZA',{hour:'2-digit',minute:'2-digit'});
+    const platBadge = entry.platform==='both'?'<span class="badge badge-both">WA+FB</span>'
+      :entry.platform==='whatsapp'?'<span class="badge badge-wa">WA</span>'
+      :'<span class="badge badge-fb">FB</span>';
+    const waShare = `https://wa.me/?text=${encodeURIComponent(entry.caption)}`;
+    const fbShare = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(entry.imgUrl)}`;
+    return `
+    <div class="hist-card">
+      <img src="${esc(entry.imgUrl)}" alt="" loading="lazy"/>
+      <div class="hist-body">
+        <div class="hist-meta">
+          ${platBadge}
+          <span>${esc(entry.product)}</span>
+          <span style="margin-left:auto">${date} ${time}</span>
+        </div>
+        <div class="hist-caption" id="hc-${idx}">${esc(entry.caption)}</div>
+        <button class="btn btn-outline btn-sm" style="margin-bottom:9px" onclick="toggleExpand('hc-${idx}',this)">Show more</button>
+        <div class="hist-actions">
+          <a class="btn btn-outline btn-sm" href="${waShare}" target="_blank">📲 WA</a>
+          <a class="btn btn-outline btn-sm" href="${fbShare}" target="_blank">📘 FB</a>
+          <button class="btn btn-outline btn-sm" onclick="copyCaption(${idx})">📋 Copy</button>
+          <button class="btn btn-outline btn-sm" style="color:var(--red)" onclick="deleteEntry(${idx})">🗑</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggleExpand(id, btn) {
+  const el = document.getElementById(id);
+  el.classList.toggle('expanded');
+  btn.textContent = el.classList.contains('expanded') ? 'Show less' : 'Show more';
+}
+function copyCaption(idx) {
+  const text = state.history[idx].caption;
+  navigator.clipboard.writeText(text).then(() => toast('Copied!')).catch(() => {
+    const ta = document.createElement('textarea');
+    ta.value = text; document.body.appendChild(ta); ta.select();
+    document.execCommand('copy'); document.body.removeChild(ta);
+    toast('Copied!');
+  });
+}
+function deleteEntry(idx) {
+  state.history.splice(idx, 1); saveState(); renderHistory(); toast('Deleted');
+}
+
+// ══════════════════════════════════════
+// SETTINGS
+// ══════════════════════════════════════
+function renderSettings() {
+  const p = state.profile;
+  document.getElementById('s-name').value    = p.name;
+  document.getElementById('s-usp').value     = p.usp;
+  document.getElementById('s-contact').value = p.contact;
+  renderTags('skills-list', p.skills, 'skills');
+  renderTags('products-list', p.products, 'products');
+}
+function renderTags(containerId, items, type) {
+  document.getElementById(containerId).innerHTML = items.map((item,i) =>
+    `<div class="tag">${esc(item)}<span class="x" onclick="removeTag('${type}',${i})">✕</span></div>`).join('');
+}
+function removeTag(type, i) {
+  state.profile[type].splice(i, 1);
+  renderTags(type==='skills'?'skills-list':'products-list', state.profile[type], type);
+  if (type === 'products') renderProductChips();
+  saveState();
+}
+
+document.getElementById('add-skill-btn').addEventListener('click', () => {
+  const v = document.getElementById('new-skill').value.trim(); if (!v) return;
+  state.profile.skills.push(v); document.getElementById('new-skill').value='';
+  renderTags('skills-list', state.profile.skills, 'skills'); saveState();
+});
+document.getElementById('add-product-btn').addEventListener('click', () => {
+  const v = document.getElementById('new-product').value.trim(); if (!v) return;
+  state.profile.products.push(v); document.getElementById('new-product').value='';
+  renderTags('products-list', state.profile.products, 'products');
+  renderProductChips(); saveState();
+});
+document.getElementById('new-skill').addEventListener('keydown', e => { if(e.key==='Enter') document.getElementById('add-skill-btn').click(); });
+document.getElementById('new-product').addEventListener('keydown', e => { if(e.key==='Enter') document.getElementById('add-product-btn').click(); });
+
+document.getElementById('save-settings-btn').addEventListener('click', () => {
+  state.profile.name    = document.getElementById('s-name').value.trim();
+  state.profile.usp     = document.getElementById('s-usp').value.trim();
+  state.profile.contact = document.getElementById('s-contact').value.trim();
+  saveState(); toast('Profile saved!');
+});
+document.getElementById('clear-history-btn').addEventListener('click', () => {
+  if (!confirm('Clear all ad history?')) return;
+  state.history = []; saveState(); toast('History cleared');
+});
+
+// ══════════════════════════════════════
+// UTILITIES
+// ══════════════════════════════════════
+function esc(str) {
+  return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function toast(msg, ok=true) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.style.background = ok ? 'var(--green)' : 'var(--red)';
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2600);
+}
+function pick(arr) { return arr[Math.floor(Math.random()*arr.length)]; }
+function shuffle(arr) { return [...arr].sort(() => Math.random()-.5); }
+
+// Init
+renderSettings();
+</script>
+</body>
+</html>

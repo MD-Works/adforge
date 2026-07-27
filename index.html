@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>AdForge Pro </title>
+<title>AdForge Pro</title>
 <style>
 :root{
   --bg:#0b0c10;--surf:#13151c;--surf2:#1c1f2b;--border:#252836;
@@ -923,7 +923,10 @@ ${text.slice(0, 8000)}`;
           messages:[{ role:'user', content: prompt }] })
       });
       const data = await res.json();
-      result = JSON.parse(data.choices[0].message.content.trim());
+      if (data.error) throw new Error('Groq API error: ' + (data.error.message || JSON.stringify(data.error)));
+      const raw = data.choices?.[0]?.message?.content;
+      if (!raw) throw new Error('Groq returned no content — check the model name and your key.');
+      result = JSON.parse(raw.replace(/```json|```/g,'').trim());
     } else if (state.providers.txt === 'gemini' && state.providers.geminiKey) {
       const model = state.providers.geminiModel;
       const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${state.providers.geminiKey}`;
@@ -932,7 +935,11 @@ ${text.slice(0, 8000)}`;
         body: JSON.stringify({ contents:[{ role:'user', parts:[{ text: prompt }] }], generationConfig:{ maxOutputTokens:800 } })
       });
       const data = await res.json();
-      const raw = data.candidates?.[0]?.content?.parts?.[0]?.text || '{}';
+      if (data.error) throw new Error('Gemini API error: ' + (data.error.message || JSON.stringify(data.error)));
+      const blockReason = data.promptFeedback?.blockReason;
+      if (blockReason) throw new Error('Gemini blocked the request (' + blockReason + ') — try a different file or model.');
+      const raw = data.candidates?.[0]?.content?.parts?.[0]?.text;
+      if (!raw) throw new Error('Gemini returned no candidates — check the model name and your key.');
       result = JSON.parse(raw.replace(/```json|```/g,'').trim());
     } else {
       // Local fallback: simple regex extraction
@@ -942,6 +949,14 @@ ${text.slice(0, 8000)}`;
       const skills = skillWords.filter(s => text.toLowerCase().includes(s)).map(s => s.charAt(0).toUpperCase()+s.slice(1));
       result = { products: products.slice(0,12), skills: [...new Set(skills)], usp:'', contact:'', name:'', notes:'Extracted using local parser (no AI key set).' };
     }
+
+    // Defensive defaults — never trust the AI to perfectly match the schema
+    result.products = Array.isArray(result.products) ? result.products : [];
+    result.skills   = Array.isArray(result.skills)   ? result.skills   : [];
+    result.usp      = result.usp      || '';
+    result.contact  = result.contact  || '';
+    result.name     = result.name     || '';
+    result.notes    = result.notes    || '';
 
     importedItems = result;
     const summary = `✅ ${result.notes||'Scan complete.'}\n\nProducts found (${result.products.length}): ${result.products.join(', ') || 'none'}\nSkills found (${result.skills.length}): ${result.skills.join(', ') || 'none'}${result.usp ? '\nUSP: '+result.usp : ''}${result.name ? '\nName: '+result.name : ''}${result.contact ? '\nContact: '+result.contact : ''}`;

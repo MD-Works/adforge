@@ -156,6 +156,18 @@ select{
 
 /* SECTION DIVIDER */
 .divider{border:none;border-top:1px solid var(--border);margin:16px 0}
+
+/* PROMPT APPROVAL MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(11,12,16,.88);display:none;align-items:center;justify-content:center;z-index:9999}
+.modal-overlay.show{display:flex}
+.modal-content{background:var(--surf);border:1px solid var(--border);border-radius:var(--radius);padding:22px;max-width:520px;width:90%;max-height:80vh;overflow-y:auto}
+.modal-title{font-size:1rem;font-weight:700;margin-bottom:12px;color:var(--text)}
+.prompt-edit{background:var(--bg);border:1px solid var(--border);border-radius:9px;padding:12px;min-height:120px;font-family:monospace;font-size:.85rem;color:var(--text);resize:vertical;margin-bottom:14px}
+.modal-actions{display:flex;gap:9px;flex-direction:column}
+.modal-actions button{padding:11px;border-radius:9px;border:none;font-family:var(--font);font-weight:700;cursor:pointer;transition:opacity .15s}
+.modal-approve{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff}
+.modal-cancel{background:var(--border);color:var(--text)}
+.modal-approve:active,.modal-cancel:active{opacity:.8}
 </style>
 </head>
 <body>
@@ -208,13 +220,14 @@ select{
     <div class="row">
       <div>
         <span class="label">Image style</span>
-        <select id="img-style">
-          <option value="professional tech workspace, ultrawide monitor, clean minimal">Tech workspace</option>
-          <option value="futuristic digital interface, glowing UI, dark theme, holographic">Futuristic UI</option>
-          <option value="modern office collaboration, diverse team, bright natural light">Team collab</option>
-          <option value="flat design illustration, bold colors, vector art style">Flat illustration</option>
-          <option value="cinematic product photo, studio lighting, dark background, dramatic">Studio shot</option>
-        </select>
+        <input type="text" id="img-style" placeholder="e.g. modern minimalist, cyberpunk neon, watercolor..." list="style-suggestions" value="professional tech workspace, ultrawide monitor, clean minimal"/>
+        <datalist id="style-suggestions">
+          <option value="professional tech workspace, ultrawide monitor, clean minimal"/>
+          <option value="futuristic digital interface, glowing UI, dark theme, holographic"/>
+          <option value="modern office collaboration, diverse team, bright natural light"/>
+          <option value="flat design illustration, bold colors, vector art style"/>
+          <option value="cinematic product photo, studio lighting, dark background, dramatic"/>
+        </datalist>
       </div>
       <div>
         <span class="label">Format</span>
@@ -430,6 +443,19 @@ select{
 
 <div id="toast"></div>
 
+<!-- PROMPT APPROVAL MODAL -->
+<div class="modal-overlay" id="prompt-modal">
+  <div class="modal-content">
+    <div class="modal-title">Review image prompt</div>
+    <p style="font-size:.83rem;color:var(--muted);margin-bottom:12px">Edit if needed, then approve to generate:</p>
+    <textarea class="prompt-edit" id="prompt-text" placeholder="Image prompt will appear here..."></textarea>
+    <div class="modal-actions">
+      <button class="modal-approve" id="prompt-approve-btn">✨ Generate with this prompt</button>
+      <button class="modal-cancel" id="prompt-cancel-btn">Cancel</button>
+    </div>
+  </div>
+</div>
+
 <script>
 // ══════════════════════════════════════
 // STATE
@@ -568,9 +594,18 @@ async function runGenerate(product) {
   })();
 
   const imgTask = (async () => {
-    setLoadTxt('Generating image…');
+    setLoadTxt('Preparing image generation…');
     try {
-      imgUrl = await generateImage(product, imgStyle, w, h);
+      // Build the prompt and show approval modal
+      const imgPrompt = buildImagePrompt(product, imgStyle);
+      const approvedPrompt = await showPromptApproval(imgPrompt);
+      
+      if (!approvedPrompt) {
+        throw new Error('Image generation cancelled by user');
+      }
+      
+      setLoadTxt('Generating image…');
+      imgUrl = await generateImage(product, imgStyle, w, h, approvedPrompt);
     } catch(e) {
       throw new Error('Image failed: ' + e.message);
     }
@@ -648,17 +683,56 @@ function renderAdResult(entry, container) {
 // ══════════════════════════════════════
 // IMAGE GENERATION
 // ══════════════════════════════════════
-async function generateImage(product, style, w, h) {
+function buildImagePrompt(product, style) {
+  // Returns the same prompt all providers would use
+  return `${style}, ${product} freelance web developer service, professional, no text`;
+}
+
+let pendingImageGeneration = null;
+
+async function showPromptApproval(prompt) {
+  return new Promise((resolve) => {
+    const modal = document.getElementById('prompt-modal');
+    const textArea = document.getElementById('prompt-text');
+    const approveBtn = document.getElementById('prompt-approve-btn');
+    const cancelBtn = document.getElementById('prompt-cancel-btn');
+
+    textArea.value = prompt;
+    modal.classList.add('show');
+
+    const cleanup = () => {
+      modal.classList.remove('show');
+      approveBtn.removeEventListener('click', onApprove);
+      cancelBtn.removeEventListener('click', onCancel);
+    };
+
+    const onApprove = () => {
+      cleanup();
+      resolve(textArea.value); // Return the possibly-edited prompt
+    };
+
+    const onCancel = () => {
+      cleanup();
+      resolve(null); // User cancelled
+    };
+
+    approveBtn.addEventListener('click', onApprove);
+    cancelBtn.addEventListener('click', onCancel);
+  });
+}
+
+async function generateImage(product, style, w, h, approvedPrompt = null) {
   const prov = state.providers.img;
+  let prompt = approvedPrompt || buildImagePrompt(product, style);
 
   if (prov === 'huggingface' && state.providers.hfKey) {
-    return await generateImageHF(product, style, w, h);
+    return await generateImageHF(prompt, w, h);
   }
   if (prov === 'stability' && state.providers.stabKey) {
-    return await generateImageStability(product, style, w, h);
+    return await generateImageStability(prompt, w, h);
   }
   // fallback / pollinations
-  return generateImagePollinations(product, style, w, h);
+  return generateImagePollinations(prompt, w, h);
 }
 
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
@@ -670,8 +744,7 @@ async function fetchWithTimeout(url, opts = {}, timeoutMs = 25000) {
   return Promise.race([fetch(url, opts), timeoutPromise]);
 }
 
-async function generateImagePollinations(product, style, w, h) {
-  const prompt = `${style}, ${product} web development service, professional, no text, high quality`;
+async function generateImagePollinations(prompt, w, h) {
   const seed = Math.floor(Math.random() * 999999);
   // nologo now requires a Pollinations account, so it's left out for anonymous use.
   // referrer is recommended by Pollinations for identifying web-app traffic.
@@ -702,8 +775,7 @@ async function generateImagePollinations(product, style, w, h) {
   throw lastErr || new Error('Pollinations failed');
 }
 
-async function generateImageHF(product, style, w, h) {
-  const prompt = `${style}, ${product} web development service, professional, no text overlay, 4k, sharp`;
+async function generateImageHF(prompt, w, h) {
   // api-inference.huggingface.co was retired in favor of the router endpoint.
   const res = await fetchWithTimeout('https://router.huggingface.co/hf-inference/models/black-forest-labs/FLUX.1-schnell', {
     method:'POST',
@@ -726,8 +798,7 @@ async function generateImageHF(product, style, w, h) {
   return URL.createObjectURL(blob);
 }
 
-async function generateImageStability(product, style, w, h) {
-  const prompt = `${style}, ${product} freelance web developer service, professional advertising image, no text`;
+async function generateImageStability(prompt, w, h) {
   const formData = new FormData();
   formData.append('prompt', prompt);
   formData.append('output_format', 'webp');
